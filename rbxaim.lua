@@ -12,7 +12,7 @@ screenGui.Name = "AimlockESP_GUI"
 screenGui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 300, 0, 240)
+frame.Size = UDim2.new(0, 300, 0, 280)
 frame.Position = UDim2.new(0, 10, 0, 10)
 frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
 frame.Active = true
@@ -86,15 +86,14 @@ fullbrightButton.TextColor3 = Color3.new(1,1,1)
 fullbrightButton.Font = Enum.Font.SourceSans
 fullbrightButton.TextSize = 18
 
--- New Loadout Button
-local loadoutButton = Instance.new("TextButton", frame)
-loadoutButton.Size = UDim2.new(1, -20, 0, 30)
-loadoutButton.Position = UDim2.new(0, 10, 0, 240)
-loadoutButton.Text = "vegh's loadout"
-loadoutButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-loadoutButton.TextColor3 = Color3.new(1,1,1)
-loadoutButton.Font = Enum.Font.SourceSans
-loadoutButton.TextSize = 18
+local veghsLoadoutBtn = Instance.new("TextButton", frame)
+veghsLoadoutBtn.Size = UDim2.new(1, -20, 0, 30)
+veghsLoadoutBtn.Position = UDim2.new(0, 10, 0, 240)
+veghsLoadoutBtn.Text = "Veghs Loadout"
+veghsLoadoutBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+veghsLoadoutBtn.TextColor3 = Color3.new(1,1,1)
+veghsLoadoutBtn.Font = Enum.Font.SourceSans
+veghsLoadoutBtn.TextSize = 18
 
 -- State
 local aimlockOn = false
@@ -108,8 +107,6 @@ local guiToggleKey = Enum.KeyCode.G
 local adornments = {}
 local fullbrightOn = false
 local Lighting = game:GetService("Lighting")
-
-local chatEvent = ReplicatedStorage:WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest")
 
 local function setToggleKey(newKey)
 	toggleKey = newKey
@@ -170,11 +167,6 @@ local function setFullbright(state)
 		fullbrightButton.BackgroundColor3 = Color3.fromRGB(255,0,0)
 	end
 end
-
--- Loadout Button click
-loadoutButton.MouseButton1Click:Connect(function()
-	chatEvent:FireServer("!s hk+hera+oil+redl+jgm4s", "All")
-end)
 
 -- Handle respawns
 Players.PlayerAdded:Connect(function(player)
@@ -254,6 +246,10 @@ end)
 
 fullbrightButton.MouseButton1Click:Connect(function()
 	setFullbright(not fullbrightOn)
+end)
+
+veghsLoadoutBtn.MouseButton1Click:Connect(function()
+	ReplicatedStorage:WaitForChild("DefaultChatSystemChatEvents"):WaitForChild("SayMessageRequest"):FireServer("!s hk+hera+oil+redl+jgm4s", "All")
 end)
 
 closeButton.MouseButton1Click:Connect(function()
