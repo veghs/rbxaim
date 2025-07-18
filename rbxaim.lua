@@ -4,6 +4,7 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 -- GUI setup
 local screenGui = Instance.new("ScreenGui", LocalPlayer:WaitForChild("PlayerGui"))
@@ -11,7 +12,7 @@ screenGui.Name = "AimlockESP_GUI"
 screenGui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 300, 0, 320)
+frame.Size = UDim2.new(0, 300, 0, 240)
 frame.Position = UDim2.new(0, 10, 0, 10)
 frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
 frame.Active = true
@@ -85,35 +86,24 @@ fullbrightButton.TextColor3 = Color3.new(1,1,1)
 fullbrightButton.Font = Enum.Font.SourceSans
 fullbrightButton.TextSize = 18
 
-local function copyToClipboard(text)
-    pcall(function()
-        setclipboard(text)
-    end)
-end
-
+-- New buttons for chat commands
 local giveBtn = Instance.new("TextButton", frame)
 giveBtn.Size = UDim2.new(1, -20, 0, 30)
 giveBtn.Position = UDim2.new(0, 10, 0, 240)
-giveBtn.Text = "Copy Give Command"
-giveBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+giveBtn.Text = "Send '!s hr+hera+oil+jgm2+redl'"
+giveBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
 giveBtn.TextColor3 = Color3.new(1,1,1)
 giveBtn.Font = Enum.Font.SourceSans
 giveBtn.TextSize = 18
-giveBtn.MouseButton1Click:Connect(function()
-    copyToClipboard("!s hr+hera+oil+jgm2+redl")
-end)
 
 local spawnBtn = Instance.new("TextButton", frame)
 spawnBtn.Size = UDim2.new(1, -20, 0, 30)
 spawnBtn.Position = UDim2.new(0, 10, 0, 280)
-spawnBtn.Text = "Copy Spawn Command"
-spawnBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+spawnBtn.Text = "Send '!setspawn hr+hera+oil+jgm2+redl'"
+spawnBtn.BackgroundColor3 = Color3.fromRGB(0, 120, 255)
 spawnBtn.TextColor3 = Color3.new(1,1,1)
 spawnBtn.Font = Enum.Font.SourceSans
 spawnBtn.TextSize = 18
-spawnBtn.MouseButton1Click:Connect(function()
-    copyToClipboard("!setspawn hr+hera+oil+jgm2+redl")
-end)
 
 -- State
 local aimlockOn = false
@@ -203,6 +193,14 @@ for _, player in pairs(Players:GetPlayers()) do
 	end)
 end
 
+-- Chat sending function
+local ChatEvents = ReplicatedStorage:WaitForChild("DefaultChatSystemChatEvents")
+local SayMessageRequest = ChatEvents:WaitForChild("SayMessageRequest")
+
+local function sendChatMessage(msg)
+	SayMessageRequest:FireServer(msg, "All")
+end
+
 -- Input
 UserInputService.InputBegan:Connect(function(input, gp)
 	if gp then return end
@@ -266,6 +264,14 @@ end)
 
 fullbrightButton.MouseButton1Click:Connect(function()
 	setFullbright(not fullbrightOn)
+end)
+
+giveBtn.MouseButton1Click:Connect(function()
+	sendChatMessage("!s hr+hera+oil+jgm2+redl")
+end)
+
+spawnBtn.MouseButton1Click:Connect(function()
+	sendChatMessage("!setspawn hr+hera+oil+jgm2+redl")
 end)
 
 closeButton.MouseButton1Click:Connect(function()
