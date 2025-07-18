@@ -11,7 +11,7 @@ screenGui.Name = "AimlockESP_GUI"
 screenGui.ResetOnSpawn = false
 
 local frame = Instance.new("Frame", screenGui)
-frame.Size = UDim2.new(0, 300, 0, 180)
+frame.Size = UDim2.new(0, 300, 0, 320)
 frame.Position = UDim2.new(0, 10, 0, 10)
 frame.BackgroundColor3 = Color3.fromRGB(35,35,35)
 frame.Active = true
@@ -84,6 +84,36 @@ fullbrightButton.BackgroundColor3 = Color3.fromRGB(255,0,0)
 fullbrightButton.TextColor3 = Color3.new(1,1,1)
 fullbrightButton.Font = Enum.Font.SourceSans
 fullbrightButton.TextSize = 18
+
+local function copyToClipboard(text)
+    pcall(function()
+        setclipboard(text)
+    end)
+end
+
+local giveBtn = Instance.new("TextButton", frame)
+giveBtn.Size = UDim2.new(1, -20, 0, 30)
+giveBtn.Position = UDim2.new(0, 10, 0, 240)
+giveBtn.Text = "Copy Give Command"
+giveBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+giveBtn.TextColor3 = Color3.new(1,1,1)
+giveBtn.Font = Enum.Font.SourceSans
+giveBtn.TextSize = 18
+giveBtn.MouseButton1Click:Connect(function()
+    copyToClipboard("!s hr+hera+oil+jgm2+redl")
+end)
+
+local spawnBtn = Instance.new("TextButton", frame)
+spawnBtn.Size = UDim2.new(1, -20, 0, 30)
+spawnBtn.Position = UDim2.new(0, 10, 0, 280)
+spawnBtn.Text = "Copy Spawn Command"
+spawnBtn.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+spawnBtn.TextColor3 = Color3.new(1,1,1)
+spawnBtn.Font = Enum.Font.SourceSans
+spawnBtn.TextSize = 18
+spawnBtn.MouseButton1Click:Connect(function()
+    copyToClipboard("!setspawn hr+hera+oil+jgm2+redl")
+end)
 
 -- State
 local aimlockOn = false
