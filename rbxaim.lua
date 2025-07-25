@@ -157,7 +157,6 @@ local function setFullbright(state)
 	end
 end
 
--- Handle respawns
 Players.PlayerAdded:Connect(function(player)
 	player.CharacterAdded:Connect(function()
 		wait(0.2)
@@ -172,7 +171,6 @@ for _, player in pairs(Players:GetPlayers()) do
 	end)
 end
 
--- Input
 UserInputService.InputBegan:Connect(function(input, gp)
 	if gp then return end
 	if input.KeyCode == toggleKey then
@@ -181,8 +179,7 @@ UserInputService.InputBegan:Connect(function(input, gp)
 		label.Text = "Aimlock: " .. (aimlockOn and "On" or "Off")
 		if not aimlockOn then
 			lockedPlayer = nil
-		end
-		if aimlockOn and holdingRightClick then
+		elseif holdingRightClick then
 			local minAngle = math.rad(5)
 			for _, player in pairs(Players:GetPlayers()) do
 				if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
