@@ -1,4 +1,3 @@
--- Simplified full script (no NameESP)
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
@@ -180,7 +179,22 @@ UserInputService.InputBegan:Connect(function(input, gp)
 		aimlockOn = not aimlockOn
 		statusBox.BackgroundColor3 = aimlockOn and Color3.fromRGB(0,255,0) or Color3.fromRGB(255,0,0)
 		label.Text = "Aimlock: " .. (aimlockOn and "On" or "Off")
-		if not aimlockOn then lockedPlayer = nil end
+		if not aimlockOn then
+			lockedPlayer = nil
+		end
+		if aimlockOn and holdingRightClick then
+			local minAngle = math.rad(5)
+			for _, player in pairs(Players:GetPlayers()) do
+				if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
+					local dir = (player.Character.Head.Position - Camera.CFrame.Position).Unit
+					local angle = math.acos(Camera.CFrame.LookVector:Dot(dir))
+					if angle < minAngle then
+						minAngle = angle
+						lockedPlayer = player
+					end
+				end
+			end
+		end
 	elseif input.KeyCode == guiToggleKey then
 		screenGui.Enabled = not screenGui.Enabled
 	elseif waitingForHotkey and input.UserInputType == Enum.UserInputType.Keyboard then
