@@ -19,7 +19,7 @@ local ScreenGui = Instance.new("ScreenGui", CoreGui)
 ScreenGui.Name = "SimpleGUI"
 
 local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0, 250, 0, 280)
+Frame.Size = UDim2.new(0, 250, 0, 400)
 Frame.Position = UDim2.new(0.5, -125, 0.5, -140)
 Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Frame.BorderSizePixel = 0
@@ -342,23 +342,40 @@ CloseButton.MouseButton1Click:Connect(function()
 	if InputEndedConn then InputEndedConn:Disconnect() end
 end)
 
+-- Speedwalk Label
+local SpeedLabel = Instance.new("TextLabel", Frame)
+SpeedLabel.Text = "WalkSpeed"
+SpeedLabel.Position = UDim2.new(0, 10, 0, 280)
+SpeedLabel.Size = UDim2.new(1, -20, 0, 20)
+SpeedLabel.BackgroundTransparency = 1
+SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedLabel.Font = Enum.Font.SourceSansBold
+SpeedLabel.TextSize = 16
+SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Speedwalk Box
 local SpeedBox = Instance.new("TextBox", Frame)
-SpeedBox.PlaceholderText = "WalkSpeed (default 16)"
-SpeedBox.Position = UDim2.new(0, 10, 0, 280)
+SpeedBox.PlaceholderText = "Default: 16"
+SpeedBox.Position = UDim2.new(0, 10, 0, 305)
 SpeedBox.Size = UDim2.new(1, -20, 0, 30)
 SpeedBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
 SpeedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 SpeedBox.Font = Enum.Font.SourceSans
 SpeedBox.TextSize = 16
+SpeedBox.Text = ""
 
+-- Speedwalk Button
 local SpeedButton = Instance.new("TextButton", Frame)
-SpeedButton.Position = UDim2.new(0, 10, 0, 320)
+SpeedButton.Position = UDim2.new(0, 10, 0, 345)
 SpeedButton.Size = UDim2.new(1, -20, 0, 30)
 SpeedButton.Text = "Set Speed"
 SpeedButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 SpeedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 SpeedButton.Font = Enum.Font.SourceSans
 SpeedButton.TextSize = 18
+
+Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 6)
+Instance.new("UICorner", SpeedButton).CornerRadius = UDim.new(0, 6)
 
 SpeedButton.MouseButton1Click:Connect(function()
     local speed = tonumber(SpeedBox.Text)
