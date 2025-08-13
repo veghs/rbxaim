@@ -472,44 +472,24 @@ Instance.new("UICorner", RagdollToggle).CornerRadius = UDim.new(0, 6)
 
 local NeverRagdoll = false
 
-local function RemoveRagdollParts(char)
-    -- Delete ragdoll constraints
-    for _, obj in ipairs(char:GetDescendants()) do
-        if obj:IsA("BallSocketConstraint") or obj:IsA("HingeConstraint") then
-            obj:Destroy()
-        end
-    end
-end
-
 local function ForceStand(char)
     local humanoid = char:FindFirstChild("Humanoid")
     if humanoid then
-        humanoid.PlatformStand = false
+        if humanoid.PlatformStand then
+            humanoid.PlatformStand = false
+        end
         humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
         humanoid.Sit = false
     end
 end
 
-local function SetupNoRagdoll()
-    if NeverRagdoll and LocalPlayer.Character then
-        local char = LocalPlayer.Character
-        RemoveRagdollParts(char)
-        ForceStand(char)
-
-        -- Prevent ragdoll parts being added
-        char.DescendantAdded:Connect(function(desc)
-            if NeverRagdoll and (desc:IsA("BallSocketConstraint") or desc:IsA("HingeConstraint")) then
-                desc:Destroy()
+local function SetupForceStand()
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("Humanoid") then
+        -- Check every frame
+        RunService.Stepped:Connect(function()
+            if NeverRagdoll then
                 ForceStand(char)
-            end
-        end)
-
-        -- Auto stand up if platform stand is forced
-        game:GetService("RunService").Stepped:Connect(function()
-            if NeverRagdoll and char:FindFirstChild("Humanoid") then
-                if char.Humanoid.PlatformStand then
-                    ForceStand(char)
-                end
             end
         end)
     end
@@ -519,14 +499,14 @@ RagdollToggle.MouseButton1Click:Connect(function()
     NeverRagdoll = not NeverRagdoll
     RagdollToggle.Text = "Never Ragdoll: " .. (NeverRagdoll and "ON" or "OFF")
     if NeverRagdoll then
-        SetupNoRagdoll()
+        SetupForceStand()
     end
 end)
 
--- When you respawn, reapply No Ragdoll
-LocalPlayer.CharacterAdded:Connect(function(char)
+-- Re-apply when you respawn
+LocalPlayer.CharacterAdded:Connect(function()
     if NeverRagdoll then
         task.wait(0.5)
-        SetupNoRagdoll()
+        SetupForceStand()
     end
 end)
