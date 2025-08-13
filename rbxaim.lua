@@ -296,22 +296,25 @@ local RenderConn, InputBeganConn, InputEndedConn
 
 RenderConn = RunService.RenderStepped:Connect(function()
 	if AimbotEnabled and RightMouseDown then
-		if currentTarget and (not ESPFolder:FindFirstChild(currentTarget.Name) or not currentTarget.Character or not currentTarget.Character:FindFirstChild("Head") or currentTarget.Character.Humanoid.Health <= 0) then
-			currentTarget = nil
+		if CurrentTarget and (not ESPFolder:FindFirstChild(CurrentTarget.Name) or 
+			not CurrentTarget.Character or 
+			not CurrentTarget.Character:FindFirstChild("Head") or 
+			CurrentTarget.Character.Humanoid.Health <= 0) then
+			CurrentTarget = nil
 		end
-		
-		if not currentTarget then
+
+		if not CurrentTarget then
 			local target = GetClosestPlayer()
 			if target and ESPFolder:FindFirstChild(target.Name) then
-				currentTarget = target
+				CurrentTarget = target
 			end
 		end
-		
-		if currentTarget and currentTarget.Character and currentTarget.Character:FindFirstChild("Head") then
-			Camera.CFrame = CFrame.new(Camera.CFrame.Position, currentTarget.Character.Head.Position)
+
+		if CurrentTarget and CurrentTarget.Character and CurrentTarget.Character:FindFirstChild("Head") then
+			Camera.CFrame = CFrame.new(Camera.CFrame.Position, CurrentTarget.Character.Head.Position)
 		end
 	else
-		currentTarget = nil
+		CurrentTarget = nil
 	end
 end)
 
