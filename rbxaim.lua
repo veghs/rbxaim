@@ -19,7 +19,7 @@ local ScreenGui = Instance.new("ScreenGui", CoreGui)
 ScreenGui.Name = "SimpleGUI"
 
 local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0, 250, 0, 400)
+Frame.Size = UDim2.new(0, 250, 0, 440)
 Frame.Position = UDim2.new(0.5, -125, 0.5, -140)
 Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Frame.BorderSizePixel = 0
@@ -363,23 +363,49 @@ SpeedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 SpeedBox.Font = Enum.Font.SourceSans
 SpeedBox.TextSize = 16
 SpeedBox.Text = ""
+Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 6)
+
+-- Speedwalk Hotkey Box
+local SpeedHotkeyBox = Instance.new("TextBox", Frame)
+SpeedHotkeyBox.PlaceholderText = "Hotkey to Set Speed"
+SpeedHotkeyBox.Position = UDim2.new(0, 10, 0, 345)
+SpeedHotkeyBox.Size = UDim2.new(1, -20, 0, 30)
+SpeedHotkeyBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+SpeedHotkeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedHotkeyBox.Font = Enum.Font.SourceSans
+SpeedHotkeyBox.TextSize = 16
+Instance.new("UICorner", SpeedHotkeyBox).CornerRadius = UDim.new(0, 6)
 
 -- Speedwalk Button
 local SpeedButton = Instance.new("TextButton", Frame)
-SpeedButton.Position = UDim2.new(0, 10, 0, 345)
+SpeedButton.Position = UDim2.new(0, 10, 0, 385)
 SpeedButton.Size = UDim2.new(1, -20, 0, 30)
 SpeedButton.Text = "Set Speed"
 SpeedButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 SpeedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 SpeedButton.Font = Enum.Font.SourceSans
 SpeedButton.TextSize = 18
-
-Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 6)
 Instance.new("UICorner", SpeedButton).CornerRadius = UDim.new(0, 6)
 
-SpeedButton.MouseButton1Click:Connect(function()
+-- Function to apply speed
+local function ApplySpeed()
     local speed = tonumber(SpeedBox.Text)
     if speed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
         LocalPlayer.Character.Humanoid.WalkSpeed = speed
+    end
+end
+
+-- Button click sets speed
+SpeedButton.MouseButton1Click:Connect(function()
+    ApplySpeed()
+end)
+
+-- Hotkey to set speed
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.UserInputType == Enum.UserInputType.Keyboard then
+        if matchesHotkey(input, SpeedHotkeyBox.Text) then
+            ApplySpeed()
+        end
     end
 end)
