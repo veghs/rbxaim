@@ -19,7 +19,7 @@ local ScreenGui = Instance.new("ScreenGui", CoreGui)
 ScreenGui.Name = "SimpleGUI"
 
 local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0, 250, 0, 440)
+Frame.Size = UDim2.new(0, 250, 0, 540)
 Frame.Position = UDim2.new(0.5, -125, 0.5, -140)
 Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Frame.BorderSizePixel = 0
@@ -408,4 +408,53 @@ UserInputService.InputBegan:Connect(function(input, gpe)
             ApplySpeed()
         end
     end
+end)
+
+-- Scale Label
+local ScaleLabel = Instance.new("TextLabel", Frame)
+ScaleLabel.Text = "Player Scale"
+ScaleLabel.Position = UDim2.new(0, 10, 0, 425)
+ScaleLabel.Size = UDim2.new(1, -20, 0, 20)
+ScaleLabel.BackgroundTransparency = 1
+ScaleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+ScaleLabel.Font = Enum.Font.SourceSansBold
+ScaleLabel.TextSize = 16
+ScaleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+-- Scale Box
+local ScaleBox = Instance.new("TextBox", Frame)
+ScaleBox.PlaceholderText = "Default: 1 (e.g., 0.5)"
+ScaleBox.Position = UDim2.new(0, 10, 0, 450)
+ScaleBox.Size = UDim2.new(1, -20, 0, 30)
+ScaleBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+ScaleBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+ScaleBox.Font = Enum.Font.SourceSans
+ScaleBox.TextSize = 16
+Instance.new("UICorner", ScaleBox).CornerRadius = UDim.new(0, 6)
+
+-- Scale Button
+local ScaleButton = Instance.new("TextButton", Frame)
+ScaleButton.Position = UDim2.new(0, 10, 0, 490)
+ScaleButton.Size = UDim2.new(1, -20, 0, 30)
+ScaleButton.Text = "Set Scale"
+ScaleButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+ScaleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ScaleButton.Font = Enum.Font.SourceSans
+ScaleButton.TextSize = 18
+Instance.new("UICorner", ScaleButton).CornerRadius = UDim.new(0, 6)
+
+-- Function to apply scale
+local function ApplyScale()
+    local scale = tonumber(ScaleBox.Text)
+    if scale and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        for _, scaleObj in ipairs(LocalPlayer.Character.Humanoid:GetChildren()) do
+            if scaleObj:IsA("NumberValue") and scaleObj.Name:match("Scale") then
+                scaleObj.Value = scale
+            end
+        end
+    end
+end
+
+ScaleButton.MouseButton1Click:Connect(function()
+    ApplyScale()
 end)
