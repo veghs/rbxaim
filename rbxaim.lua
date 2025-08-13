@@ -19,7 +19,7 @@ local ScreenGui = Instance.new("ScreenGui", CoreGui)
 ScreenGui.Name = "SimpleGUI"
 
 local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0, 250, 0, 540)
+Frame.Size = UDim2.new(0, 250, 0, 580)
 Frame.Position = UDim2.new(0.5, -125, 0.5, -140)
 Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Frame.BorderSizePixel = 0
@@ -457,4 +457,76 @@ end
 
 ScaleButton.MouseButton1Click:Connect(function()
     ApplyScale()
+end)
+
+-- Never Ragdoll Toggle
+local RagdollToggle = Instance.new("TextButton", Frame)
+RagdollToggle.Position = UDim2.new(0, 10, 0, 530)
+RagdollToggle.Size = UDim2.new(1, -20, 0, 30)
+RagdollToggle.Text = "Never Ragdoll: OFF"
+RagdollToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+RagdollToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
+RagdollToggle.Font = Enum.Font.SourceSans
+RagdollToggle.TextSize = 18
+Instance.new("UICorner", RagdollToggle).CornerRadius = UDim.new(0, 6)
+
+local NeverRagdoll = false
+
+local function RemoveRagdollParts(char)
+    -- Delete ragdoll constraints
+    for _, obj in ipairs(char:GetDescendants()) do
+        if obj:IsA("BallSocketConstraint") or obj:IsA("HingeConstraint") then
+            obj:Destroy()
+        end
+    end
+end
+
+local function ForceStand(char)
+    local humanoid = char:FindFirstChild("Humanoid")
+    if humanoid then
+        humanoid.PlatformStand = false
+        humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
+        humanoid.Sit = false
+    end
+end
+
+local function SetupNoRagdoll()
+    if NeverRagdoll and LocalPlayer.Character then
+        local char = LocalPlayer.Character
+        RemoveRagdollParts(char)
+        ForceStand(char)
+
+        -- Prevent ragdoll parts being added
+        char.DescendantAdded:Connect(function(desc)
+            if NeverRagdoll and (desc:IsA("BallSocketConstraint") or desc:IsA("HingeConstraint")) then
+                desc:Destroy()
+                ForceStand(char)
+            end
+        end)
+
+        -- Auto stand up if platform stand is forced
+        game:GetService("RunService").Stepped:Connect(function()
+            if NeverRagdoll and char:FindFirstChild("Humanoid") then
+                if char.Humanoid.PlatformStand then
+                    ForceStand(char)
+                end
+            end
+        end)
+    end
+end
+
+RagdollToggle.MouseButton1Click:Connect(function()
+    NeverRagdoll = not NeverRagdoll
+    RagdollToggle.Text = "Never Ragdoll: " .. (NeverRagdoll and "ON" or "OFF")
+    if NeverRagdoll then
+        SetupNoRagdoll()
+    end
+end)
+
+-- When you respawn, reapply No Ragdoll
+LocalPlayer.CharacterAdded:Connect(function(char)
+    if NeverRagdoll then
+        task.wait(0.5)
+        SetupNoRagdoll()
+    end
 end)
