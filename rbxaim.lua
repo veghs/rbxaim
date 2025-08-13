@@ -341,3 +341,28 @@ CloseButton.MouseButton1Click:Connect(function()
 	if InputBeganConn then InputBeganConn:Disconnect() end
 	if InputEndedConn then InputEndedConn:Disconnect() end
 end)
+
+local SpeedBox = Instance.new("TextBox", Frame)
+SpeedBox.PlaceholderText = "WalkSpeed (default 16)"
+SpeedBox.Position = UDim2.new(0, 10, 0, 280)
+SpeedBox.Size = UDim2.new(1, -20, 0, 30)
+SpeedBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+SpeedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedBox.Font = Enum.Font.SourceSans
+SpeedBox.TextSize = 16
+
+local SpeedButton = Instance.new("TextButton", Frame)
+SpeedButton.Position = UDim2.new(0, 10, 0, 320)
+SpeedButton.Size = UDim2.new(1, -20, 0, 30)
+SpeedButton.Text = "Set Speed"
+SpeedButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+SpeedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+SpeedButton.Font = Enum.Font.SourceSans
+SpeedButton.TextSize = 18
+
+SpeedButton.MouseButton1Click:Connect(function()
+    local speed = tonumber(SpeedBox.Text)
+    if speed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        LocalPlayer.Character.Humanoid.WalkSpeed = speed
+    end
+end)
