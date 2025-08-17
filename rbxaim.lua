@@ -1,4 +1,3 @@
--- Simple Universal Roblox Script GUI with ESP + Aimhack + Teleport (CTRL+Click) with Hungarian QWERTZ fix
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
@@ -19,7 +18,7 @@ local ScreenGui = Instance.new("ScreenGui", CoreGui)
 ScreenGui.Name = "SimpleGUI"
 
 local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0, 250, 0, 540)
+Frame.Size = UDim2.new(0, 250, 0, 560)
 Frame.Position = UDim2.new(0.5, -125, 0.5, -140)
 Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Frame.BorderSizePixel = 0
@@ -52,7 +51,6 @@ FullbrightToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 FullbrightToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
 FullbrightToggle.Font = Enum.Font.SourceSans
 FullbrightToggle.TextSize = 18
-
 
 local ColorPicker = Instance.new("TextBox", Frame)
 ColorPicker.PlaceholderText = "RGB (255,255,255)"
@@ -111,12 +109,8 @@ local CurrentTarget = nil
 
 local TeleportEnabled = false
 
--- Hungarian QWERTZ layout map for keys to logical keys
-local qwertzMap = {
-    ["Z"] = "Y",
-    ["Y"] = "Z",
-}
-
+-- Hungarian QWERTZ layout map
+local qwertzMap = { ["Z"] = "Y", ["Y"] = "Z" }
 local function physicalToLogicalKey(keyName)
     return qwertzMap[keyName] or keyName
 end
@@ -161,10 +155,7 @@ local function ToggleFullbright()
 	if FullbrightEnabled then
 		FullbrightToggle.Text = "Fullbright: ON"
 		OriginalSky = OriginalLighting:FindFirstChildOfClass("Sky")
-		if OriginalSky then
-			OriginalSky.Parent = nil
-		end
-
+		if OriginalSky then OriginalSky.Parent = nil end
 		OriginalLighting.Ambient = Color3.new(1, 1, 1)
 		OriginalLighting.ColorShift_Top = Color3.new(1, 1, 1)
 		OriginalLighting.ColorShift_Bottom = Color3.new(1, 1, 1)
@@ -175,10 +166,7 @@ local function ToggleFullbright()
 		OriginalLighting.GlobalShadows = false
 	else
 		FullbrightToggle.Text = "Fullbright: OFF"
-		if OriginalSky then
-			OriginalSky.Parent = OriginalLighting
-		end
-
+		if OriginalSky then OriginalSky.Parent = OriginalLighting end
 		OriginalLighting.Ambient = Color3.new(0.5, 0.5, 0.5)
 		OriginalLighting.ColorShift_Top = Color3.new(0, 0, 0)
 		OriginalLighting.ColorShift_Bottom = Color3.new(0, 0, 0)
@@ -190,9 +178,9 @@ local function ToggleFullbright()
 	end
 end
 
-local function IsPlayerAlive(plr)
-	if plr and plr.Character and plr.Character:FindFirstChild("Humanoid") then
-		return plr.Character.Humanoid.Health > 0
+local function IsAlive(model)
+	if model and model:FindFirstChild("Humanoid") then
+		return model.Humanoid.Health > 0
 	end
 	return false
 end
@@ -203,7 +191,7 @@ local function GetClosestTarget()
 	local mousePos = UserInputService:GetMouseLocation()
 	for _, model in pairs(workspace:GetDescendants()) do
 		if model:IsA("Model") and model:FindFirstChild("Humanoid") and model:FindFirstChild("Head") and model:FindFirstChild("HumanoidRootPart") then
-			if model ~= LocalPlayer.Character and model.Humanoid.Health > 0 then
+			if model ~= LocalPlayer.Character and IsAlive(model) then
 				local pos, onScreen = Camera:WorldToViewportPoint(model.Head.Position)
 				if onScreen then
 					local mag = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
@@ -235,9 +223,7 @@ ESPToggle.MouseButton1Click:Connect(function()
 	ToggleESP()
 end)
 
-FullbrightToggle.MouseButton1Click:Connect(function()
-	ToggleFullbright()
-end)
+FullbrightToggle.MouseButton1Click:Connect(ToggleFullbright)
 
 TeleportToggle.MouseButton1Click:Connect(function()
 	TeleportEnabled = not TeleportEnabled
@@ -248,7 +234,7 @@ Players.PlayerAdded:Connect(function(plr)
 	plr.CharacterAdded:Connect(function()
 		if ESPEnabled then
 			task.wait(0.1)
-			CreateESP(plr)
+			CreateESP(plr.Character)
 		end
 	end)
 end)
@@ -257,7 +243,7 @@ for _, plr in pairs(Players:GetPlayers()) do
 	plr.CharacterAdded:Connect(function()
 		if ESPEnabled then
 			task.wait(0.1)
-			CreateESP(plr)
+			CreateESP(plr.Character)
 		end
 	end)
 end
@@ -273,9 +259,7 @@ UserInputService.InputBegan:Connect(function(input, gpe)
 		end
 		if matchesHotkey(input, AimHotkeyBox.Text) then
 			AimbotEnabled = not AimbotEnabled
-			if not AimbotEnabled then
-				CurrentTarget = nil
-			end
+			if not AimbotEnabled then CurrentTarget = nil end
 		end
 	end
 end)
@@ -299,39 +283,21 @@ Mouse.Button1Down:Connect(function()
 	end
 end)
 
+-- Aimbot
 local RenderConn, InputBeganConn, InputEndedConn
-
 RenderConn = RunService.RenderStepped:Connect(function()
 	if AimbotEnabled and RightMouseDown then
-		if currentTarget and (not ESPFolder:FindFirstChild(currentTarget.Name) or not currentTarget.Character or not currentTarget.Character:FindFirstChild("Head") or currentTarget.Character.Humanoid.Health <= 0) then
-			currentTarget = nil
+		if CurrentTarget and (not CurrentTarget:FindFirstChild("Head") or not IsAlive(CurrentTarget)) then
+			CurrentTarget = nil
 		end
-		
-		if not currentTarget then
-			local target = GetClosestPlayer()
-			if target and ESPFolder:FindFirstChild(target.Name) then
-				currentTarget = target
-			end
+		if not CurrentTarget then
+			local target = GetClosestTarget()
+			if target then CurrentTarget = target end
 		end
-		
-		if currentTarget and currentTarget.Character and currentTarget.Character:FindFirstChild("Head") then
-			Camera.CFrame = CFrame.new(Camera.CFrame.Position, currentTarget.Character.Head.Position)
+		if CurrentTarget and CurrentTarget:FindFirstChild("Head") then
+			Camera.CFrame = CFrame.new(Camera.CFrame.Position, CurrentTarget.Head.Position)
 		end
 	else
-		currentTarget = nil
-	end
-end)
-
-InputBeganConn = UserInputService.InputBegan:Connect(function(input, gpe)
-	if gpe then return end
-	if input.UserInputType == Enum.UserInputType.MouseButton2 then
-		RightMouseDown = true
-	end
-end)
-
-InputEndedConn = UserInputService.InputEnded:Connect(function(input)
-	if input.UserInputType == Enum.UserInputType.MouseButton2 then
-		RightMouseDown = false
 		CurrentTarget = nil
 	end
 end)
@@ -345,8 +311,6 @@ CloseButton.MouseButton1Click:Connect(function()
 	ESPFolder:Destroy()
 	ScreenGui:Destroy()
 	if RenderConn then RenderConn:Disconnect() end
-	if InputBeganConn then InputBeganConn:Disconnect() end
-	if InputEndedConn then InputEndedConn:Disconnect() end
 end)
 
 -- Speedwalk Label
@@ -360,7 +324,6 @@ SpeedLabel.Font = Enum.Font.SourceSansBold
 SpeedLabel.TextSize = 16
 SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- Speedwalk Box
 local SpeedBox = Instance.new("TextBox", Frame)
 SpeedBox.PlaceholderText = "Default: 16"
 SpeedBox.Position = UDim2.new(0, 10, 0, 305)
@@ -372,7 +335,6 @@ SpeedBox.TextSize = 16
 SpeedBox.Text = ""
 Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 6)
 
--- Speedwalk Hotkey Box
 local SpeedHotkeyBox = Instance.new("TextBox", Frame)
 SpeedHotkeyBox.PlaceholderText = "Hotkey to Set Speed"
 SpeedHotkeyBox.Position = UDim2.new(0, 10, 0, 345)
@@ -383,7 +345,6 @@ SpeedHotkeyBox.Font = Enum.Font.SourceSans
 SpeedHotkeyBox.TextSize = 16
 Instance.new("UICorner", SpeedHotkeyBox).CornerRadius = UDim.new(0, 6)
 
--- Speedwalk Button
 local SpeedButton = Instance.new("TextButton", Frame)
 SpeedButton.Position = UDim2.new(0, 10, 0, 385)
 SpeedButton.Size = UDim2.new(1, -20, 0, 30)
@@ -394,7 +355,6 @@ SpeedButton.Font = Enum.Font.SourceSans
 SpeedButton.TextSize = 18
 Instance.new("UICorner", SpeedButton).CornerRadius = UDim.new(0, 6)
 
--- Function to apply speed
 local function ApplySpeed()
     local speed = tonumber(SpeedBox.Text)
     if speed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -402,12 +362,7 @@ local function ApplySpeed()
     end
 end
 
--- Button click sets speed
-SpeedButton.MouseButton1Click:Connect(function()
-    ApplySpeed()
-end)
-
--- Hotkey to set speed
+SpeedButton.MouseButton1Click:Connect(ApplySpeed)
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.UserInputType == Enum.UserInputType.Keyboard then
