@@ -122,28 +122,33 @@ local function physicalToLogicalKey(keyName)
 end
 
 -- Functions
-local function CreateESP(plr)
-	if plr ~= LocalPlayer then
-		if ESPFolder:FindFirstChild(plr.Name) then
-			ESPFolder[plr.Name]:Destroy()
+local function CreateESP(model)
+	if model and model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Humanoid") then
+		if ESPFolder:FindFirstChild(model.Name) then
+			ESPFolder[model.Name]:Destroy()
 		end
-		if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-			local highlight = Instance.new("Highlight", ESPFolder)
-			highlight.Name = plr.Name
-			highlight.Adornee = plr.Character
-			highlight.FillColor = ESPColor
-			highlight.FillTransparency = 0.5
-			highlight.OutlineTransparency = 0
-		end
+		local highlight = Instance.new("Highlight", ESPFolder)
+		highlight.Name = model.Name
+		highlight.Adornee = model
+		highlight.FillColor = ESPColor
+		highlight.FillTransparency = 0.5
+		highlight.OutlineTransparency = 0
 	end
 end
 
 local function ToggleESP()
 	ESPEnabled = not ESPEnabled
 	if ESPEnabled then
+		-- Players
 		for _, plr in pairs(Players:GetPlayers()) do
-			if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-				CreateESP(plr)
+			if plr.Character then
+				CreateESP(plr.Character)
+			end
+		end
+		-- NPCs
+		for _, npc in pairs(workspace:GetDescendants()) do
+			if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and npc:FindFirstChild("HumanoidRootPart") then
+				CreateESP(npc)
 			end
 		end
 	else
@@ -192,18 +197,20 @@ local function IsPlayerAlive(plr)
 	return false
 end
 
-local function GetClosestPlayer()
+local function GetClosestTarget()
 	local closest
 	local closestMag = math.huge
 	local mousePos = UserInputService:GetMouseLocation()
-	for _, plr in pairs(Players:GetPlayers()) do
-		if plr ~= LocalPlayer and IsPlayerAlive(plr) and plr.Character and plr.Character:FindFirstChild("Head") then
-			local pos, onScreen = Camera:WorldToViewportPoint(plr.Character.Head.Position)
-			if onScreen then
-				local mag = (Vector2.new(pos.X, pos.Y) - Vector2.new(mousePos.X, mousePos.Y)).Magnitude
-				if mag < closestMag and mag < 120 then
-					closest = plr
-					closestMag = mag
+	for _, model in pairs(workspace:GetDescendants()) do
+		if model:IsA("Model") and model:FindFirstChild("Humanoid") and model:FindFirstChild("Head") and model:FindFirstChild("HumanoidRootPart") then
+			if model ~= LocalPlayer.Character and model.Humanoid.Health > 0 then
+				local pos, onScreen = Camera:WorldToViewportPoint(model.Head.Position)
+				if onScreen then
+					local mag = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
+					if mag < closestMag and mag < 120 then
+						closest = model
+						closestMag = mag
+					end
 				end
 			end
 		end
