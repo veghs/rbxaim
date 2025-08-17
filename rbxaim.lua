@@ -139,12 +139,21 @@ local function ToggleESP()
 				CreateESP(plr.Character)
 			end
 		end
-		-- NPCs
+
+		-- NPCs (initial scan)
 		for _, npc in pairs(workspace:GetDescendants()) do
 			if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and npc:FindFirstChild("HumanoidRootPart") then
 				CreateESP(npc)
 			end
 		end
+
+		-- Listen for new NPCs
+		workspace.DescendantAdded:Connect(function(obj)
+			if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj:FindFirstChild("HumanoidRootPart") then
+				CreateESP(obj)
+			end
+		end)
+
 	else
 		ESPFolder:ClearAllChildren()
 	end
