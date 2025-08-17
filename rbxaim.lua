@@ -117,53 +117,34 @@ end
 
 -- Functions
 local function CreateESP(model)
-	if model and model:FindFirstChild("Humanoid") then
-		-- Remove old ESP if exists
+	if model and model:FindFirstChild("Humanoid") and model:FindFirstChild("HumanoidRootPart") then
 		if ESPFolder:FindFirstChild(model.Name) then
 			ESPFolder[model.Name]:Destroy()
 		end
 
-		local container = Instance.new("Folder")
-		container.Name = model.Name
-		container.Parent = ESPFolder
-
-		for _, part in pairs(model:GetDescendants()) do
-			if part:IsA("BasePart") then
-				local highlight = Instance.new("BoxHandleAdornment")
-				highlight.Size = part.Size
-				highlight.AlwaysOnTop = true
-				highlight.ZIndex = 0
-				highlight.Adornee = part
-				highlight.Color3 = ESPColor
-				highlight.Transparency = 0.5
-				highlight.Parent = container
-			end
-		end
+		local highlight = Instance.new("Highlight")
+		highlight.Name = model.Name
+		highlight.Adornee = model
+		highlight.FillColor = ESPColor
+		highlight.FillTransparency = 0.5
+		highlight.OutlineColor = ESPColor
+		highlight.OutlineTransparency = 0
+		highlight.Parent = ESPFolder
 	end
 end
 
 local function ToggleESP()
 	ESPEnabled = not ESPEnabled
 	if ESPEnabled then
-		-- Players
-		for _, plr in pairs(Players:GetPlayers()) do
-			if plr.Character then
-				CreateESP(plr.Character)
-			end
-			plr.CharacterAdded:Connect(function(char)
-				CreateESP(char)
-			end)
-		end
-
-		-- NPCs (initial scan)
-		for _, npc in pairs(workspace:GetChildren()) do
-			if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and npc:FindFirstChild("HumanoidRootPart") then
-				CreateESP(npc)
+		-- Scan all humanoid models
+		for _, obj in pairs(workspace:GetDescendants()) do
+			if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj:FindFirstChild("HumanoidRootPart") then
+				CreateESP(obj)
 			end
 		end
 
-		-- Watch for new NPCs spawning
-		workspace.ChildAdded:Connect(function(obj)
+		-- Listen for new models anywhere
+		workspace.DescendantAdded:Connect(function(obj)
 			if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj:FindFirstChild("HumanoidRootPart") then
 				CreateESP(obj)
 			end
