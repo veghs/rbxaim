@@ -117,20 +117,28 @@ end
 
 -- Functions
 local function CreateESP(model)
-	if model and model:FindFirstChild("Humanoid") and model:FindFirstChild("HumanoidRootPart") then
-		if not model.PrimaryPart then
-			model.PrimaryPart = model:FindFirstChild("HumanoidRootPart")
-		end
+	if model and model:FindFirstChild("Humanoid") then
+		-- Remove old ESP if exists
 		if ESPFolder:FindFirstChild(model.Name) then
 			ESPFolder[model.Name]:Destroy()
 		end
-		local highlight = Instance.new("Highlight")
-		highlight.Name = model.Name
-		highlight.Adornee = model
-		highlight.FillColor = ESPColor
-		highlight.FillTransparency = 0.5
-		highlight.OutlineTransparency = 0
-		highlight.Parent = ESPFolder
+
+		local container = Instance.new("Folder")
+		container.Name = model.Name
+		container.Parent = ESPFolder
+
+		for _, part in pairs(model:GetDescendants()) do
+			if part:IsA("BasePart") then
+				local highlight = Instance.new("BoxHandleAdornment")
+				highlight.Size = part.Size
+				highlight.AlwaysOnTop = true
+				highlight.ZIndex = 0
+				highlight.Adornee = part
+				highlight.Color3 = ESPColor
+				highlight.Transparency = 0.5
+				highlight.Parent = container
+			end
+		end
 	end
 end
 
