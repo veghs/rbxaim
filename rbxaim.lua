@@ -117,16 +117,20 @@ end
 
 -- Functions
 local function CreateESP(model)
-	if model and model:FindFirstChild("HumanoidRootPart") and model:FindFirstChild("Humanoid") then
+	if model and model:FindFirstChild("Humanoid") and model:FindFirstChild("HumanoidRootPart") then
+		if not model.PrimaryPart then
+			model.PrimaryPart = model:FindFirstChild("HumanoidRootPart")
+		end
 		if ESPFolder:FindFirstChild(model.Name) then
 			ESPFolder[model.Name]:Destroy()
 		end
-		local highlight = Instance.new("Highlight", ESPFolder)
+		local highlight = Instance.new("Highlight")
 		highlight.Name = model.Name
 		highlight.Adornee = model
 		highlight.FillColor = ESPColor
 		highlight.FillTransparency = 0.5
 		highlight.OutlineTransparency = 0
+		highlight.Parent = ESPFolder
 	end
 end
 
@@ -138,17 +142,20 @@ local function ToggleESP()
 			if plr.Character then
 				CreateESP(plr.Character)
 			end
+			plr.CharacterAdded:Connect(function(char)
+				CreateESP(char)
+			end)
 		end
 
 		-- NPCs (initial scan)
-		for _, npc in pairs(workspace:GetDescendants()) do
+		for _, npc in pairs(workspace:GetChildren()) do
 			if npc:IsA("Model") and npc:FindFirstChild("Humanoid") and npc:FindFirstChild("HumanoidRootPart") then
 				CreateESP(npc)
 			end
 		end
 
-		-- Listen for new NPCs
-		workspace.DescendantAdded:Connect(function(obj)
+		-- Watch for new NPCs spawning
+		workspace.ChildAdded:Connect(function(obj)
 			if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj:FindFirstChild("HumanoidRootPart") then
 				CreateESP(obj)
 			end
