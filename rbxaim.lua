@@ -1,3 +1,4 @@
+-- Simple Universal Roblox Script GUI with ESP + Aimhack + Teleport (CTRL+Click) with Hungarian QWERTZ fix
 local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
@@ -18,7 +19,7 @@ local ScreenGui = Instance.new("ScreenGui", CoreGui)
 ScreenGui.Name = "SimpleGUI"
 
 local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0, 250, 0, 560)
+Frame.Size = UDim2.new(0, 250, 0, 280)
 Frame.Position = UDim2.new(0.5, -125, 0.5, -140)
 Frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 Frame.BorderSizePixel = 0
@@ -51,6 +52,7 @@ FullbrightToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
 FullbrightToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
 FullbrightToggle.Font = Enum.Font.SourceSans
 FullbrightToggle.TextSize = 18
+
 
 local ColorPicker = Instance.new("TextBox", Frame)
 ColorPicker.PlaceholderText = "RGB (255,255,255)"
@@ -109,47 +111,41 @@ local CurrentTarget = nil
 
 local TeleportEnabled = false
 
--- Hungarian QWERTZ layout map
-local qwertzMap = { ["Z"] = "Y", ["Y"] = "Z" }
+-- Hungarian QWERTZ layout map for keys to logical keys
+local qwertzMap = {
+    ["Z"] = "Y",
+    ["Y"] = "Z",
+}
+
 local function physicalToLogicalKey(keyName)
     return qwertzMap[keyName] or keyName
 end
 
 -- Functions
-local function CreateESP(model)
-	if model and model:FindFirstChild("Humanoid") and model:FindFirstChild("HumanoidRootPart") then
-		if ESPFolder:FindFirstChild(model.Name) then
-			ESPFolder[model.Name]:Destroy()
+local function CreateESP(plr)
+	if plr ~= LocalPlayer then
+		if ESPFolder:FindFirstChild(plr.Name) then
+			ESPFolder[plr.Name]:Destroy()
 		end
-
-		local highlight = Instance.new("Highlight")
-		highlight.Name = model.Name
-		highlight.Adornee = model
-		highlight.FillColor = ESPColor
-		highlight.FillTransparency = 0.5
-		highlight.OutlineColor = ESPColor
-		highlight.OutlineTransparency = 0
-		highlight.Parent = ESPFolder
+		if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+			local highlight = Instance.new("Highlight", ESPFolder)
+			highlight.Name = plr.Name
+			highlight.Adornee = plr.Character
+			highlight.FillColor = ESPColor
+			highlight.FillTransparency = 0.5
+			highlight.OutlineTransparency = 0
+		end
 	end
 end
 
 local function ToggleESP()
 	ESPEnabled = not ESPEnabled
 	if ESPEnabled then
-		-- Scan all humanoid models
-		for _, obj in pairs(workspace:GetDescendants()) do
-			if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj:FindFirstChild("HumanoidRootPart") then
-				CreateESP(obj)
+		for _, plr in pairs(Players:GetPlayers()) do
+			if plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
+				CreateESP(plr)
 			end
 		end
-
-		-- Listen for new models anywhere
-		workspace.DescendantAdded:Connect(function(obj)
-			if obj:IsA("Model") and obj:FindFirstChild("Humanoid") and obj:FindFirstChild("HumanoidRootPart") then
-				CreateESP(obj)
-			end
-		end)
-
 	else
 		ESPFolder:ClearAllChildren()
 	end
@@ -160,7 +156,10 @@ local function ToggleFullbright()
 	if FullbrightEnabled then
 		FullbrightToggle.Text = "Fullbright: ON"
 		OriginalSky = OriginalLighting:FindFirstChildOfClass("Sky")
-		if OriginalSky then OriginalSky.Parent = nil end
+		if OriginalSky then
+			OriginalSky.Parent = nil
+		end
+
 		OriginalLighting.Ambient = Color3.new(1, 1, 1)
 		OriginalLighting.ColorShift_Top = Color3.new(1, 1, 1)
 		OriginalLighting.ColorShift_Bottom = Color3.new(1, 1, 1)
@@ -171,7 +170,10 @@ local function ToggleFullbright()
 		OriginalLighting.GlobalShadows = false
 	else
 		FullbrightToggle.Text = "Fullbright: OFF"
-		if OriginalSky then OriginalSky.Parent = OriginalLighting end
+		if OriginalSky then
+			OriginalSky.Parent = OriginalLighting
+		end
+
 		OriginalLighting.Ambient = Color3.new(0.5, 0.5, 0.5)
 		OriginalLighting.ColorShift_Top = Color3.new(0, 0, 0)
 		OriginalLighting.ColorShift_Bottom = Color3.new(0, 0, 0)
@@ -183,27 +185,25 @@ local function ToggleFullbright()
 	end
 end
 
-local function IsAlive(model)
-	if model and model:FindFirstChild("Humanoid") then
-		return model.Humanoid.Health > 0
+local function IsPlayerAlive(plr)
+	if plr and plr.Character and plr.Character:FindFirstChild("Humanoid") then
+		return plr.Character.Humanoid.Health > 0
 	end
 	return false
 end
 
-local function GetClosestTarget()
+local function GetClosestPlayer()
 	local closest
 	local closestMag = math.huge
 	local mousePos = UserInputService:GetMouseLocation()
-	for _, model in pairs(workspace:GetDescendants()) do
-		if model:IsA("Model") and model:FindFirstChild("Humanoid") and model:FindFirstChild("Head") and model:FindFirstChild("HumanoidRootPart") then
-			if model ~= LocalPlayer.Character and IsAlive(model) then
-				local pos, onScreen = Camera:WorldToViewportPoint(model.Head.Position)
-				if onScreen then
-					local mag = (Vector2.new(pos.X, pos.Y) - mousePos).Magnitude
-					if mag < closestMag and mag < 120 then
-						closest = model
-						closestMag = mag
-					end
+	for _, plr in pairs(Players:GetPlayers()) do
+		if plr ~= LocalPlayer and IsPlayerAlive(plr) and plr.Character and plr.Character:FindFirstChild("Head") then
+			local pos, onScreen = Camera:WorldToViewportPoint(plr.Character.Head.Position)
+			if onScreen then
+				local mag = (Vector2.new(pos.X, pos.Y) - Vector2.new(mousePos.X, mousePos.Y)).Magnitude
+				if mag < closestMag and mag < 120 then
+					closest = plr
+					closestMag = mag
 				end
 			end
 		end
@@ -228,7 +228,9 @@ ESPToggle.MouseButton1Click:Connect(function()
 	ToggleESP()
 end)
 
-FullbrightToggle.MouseButton1Click:Connect(ToggleFullbright)
+FullbrightToggle.MouseButton1Click:Connect(function()
+	ToggleFullbright()
+end)
 
 TeleportToggle.MouseButton1Click:Connect(function()
 	TeleportEnabled = not TeleportEnabled
@@ -239,7 +241,7 @@ Players.PlayerAdded:Connect(function(plr)
 	plr.CharacterAdded:Connect(function()
 		if ESPEnabled then
 			task.wait(0.1)
-			CreateESP(plr.Character)
+			CreateESP(plr)
 		end
 	end)
 end)
@@ -248,7 +250,7 @@ for _, plr in pairs(Players:GetPlayers()) do
 	plr.CharacterAdded:Connect(function()
 		if ESPEnabled then
 			task.wait(0.1)
-			CreateESP(plr.Character)
+			CreateESP(plr)
 		end
 	end)
 end
@@ -264,7 +266,9 @@ UserInputService.InputBegan:Connect(function(input, gpe)
 		end
 		if matchesHotkey(input, AimHotkeyBox.Text) then
 			AimbotEnabled = not AimbotEnabled
-			if not AimbotEnabled then CurrentTarget = nil end
+			if not AimbotEnabled then
+				CurrentTarget = nil
+			end
 		end
 	end
 end)
@@ -288,21 +292,39 @@ Mouse.Button1Down:Connect(function()
 	end
 end)
 
--- Aimbot
 local RenderConn, InputBeganConn, InputEndedConn
+
 RenderConn = RunService.RenderStepped:Connect(function()
 	if AimbotEnabled and RightMouseDown then
-		if CurrentTarget and (not CurrentTarget:FindFirstChild("Head") or not IsAlive(CurrentTarget)) then
-			CurrentTarget = nil
+		if currentTarget and (not ESPFolder:FindFirstChild(currentTarget.Name) or not currentTarget.Character or not currentTarget.Character:FindFirstChild("Head") or currentTarget.Character.Humanoid.Health <= 0) then
+			currentTarget = nil
 		end
-		if not CurrentTarget then
-			local target = GetClosestTarget()
-			if target then CurrentTarget = target end
+		
+		if not currentTarget then
+			local target = GetClosestPlayer()
+			if target and ESPFolder:FindFirstChild(target.Name) then
+				currentTarget = target
+			end
 		end
-		if CurrentTarget and CurrentTarget:FindFirstChild("Head") then
-			Camera.CFrame = CFrame.new(Camera.CFrame.Position, CurrentTarget.Head.Position)
+		
+		if currentTarget and currentTarget.Character and currentTarget.Character:FindFirstChild("Head") then
+			Camera.CFrame = CFrame.new(Camera.CFrame.Position, currentTarget.Character.Head.Position)
 		end
 	else
+		currentTarget = nil
+	end
+end)
+
+InputBeganConn = UserInputService.InputBegan:Connect(function(input, gpe)
+	if gpe then return end
+	if input.UserInputType == Enum.UserInputType.MouseButton2 then
+		RightMouseDown = true
+	end
+end)
+
+InputEndedConn = UserInputService.InputEnded:Connect(function(input)
+	if input.UserInputType == Enum.UserInputType.MouseButton2 then
+		RightMouseDown = false
 		CurrentTarget = nil
 	end
 end)
@@ -316,115 +338,6 @@ CloseButton.MouseButton1Click:Connect(function()
 	ESPFolder:Destroy()
 	ScreenGui:Destroy()
 	if RenderConn then RenderConn:Disconnect() end
-end)
-
--- Speedwalk Label
-local SpeedLabel = Instance.new("TextLabel", Frame)
-SpeedLabel.Text = "WalkSpeed"
-SpeedLabel.Position = UDim2.new(0, 10, 0, 280)
-SpeedLabel.Size = UDim2.new(1, -20, 0, 20)
-SpeedLabel.BackgroundTransparency = 1
-SpeedLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedLabel.Font = Enum.Font.SourceSansBold
-SpeedLabel.TextSize = 16
-SpeedLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-local SpeedBox = Instance.new("TextBox", Frame)
-SpeedBox.PlaceholderText = "Default: 16"
-SpeedBox.Position = UDim2.new(0, 10, 0, 305)
-SpeedBox.Size = UDim2.new(1, -20, 0, 30)
-SpeedBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-SpeedBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedBox.Font = Enum.Font.SourceSans
-SpeedBox.TextSize = 16
-SpeedBox.Text = ""
-Instance.new("UICorner", SpeedBox).CornerRadius = UDim.new(0, 6)
-
-local SpeedHotkeyBox = Instance.new("TextBox", Frame)
-SpeedHotkeyBox.PlaceholderText = "Hotkey to Set Speed"
-SpeedHotkeyBox.Position = UDim2.new(0, 10, 0, 345)
-SpeedHotkeyBox.Size = UDim2.new(1, -20, 0, 30)
-SpeedHotkeyBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
-SpeedHotkeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedHotkeyBox.Font = Enum.Font.SourceSans
-SpeedHotkeyBox.TextSize = 16
-Instance.new("UICorner", SpeedHotkeyBox).CornerRadius = UDim.new(0, 6)
-
-local SpeedButton = Instance.new("TextButton", Frame)
-SpeedButton.Position = UDim2.new(0, 10, 0, 385)
-SpeedButton.Size = UDim2.new(1, -20, 0, 30)
-SpeedButton.Text = "Set Speed"
-SpeedButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-SpeedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-SpeedButton.Font = Enum.Font.SourceSans
-SpeedButton.TextSize = 18
-Instance.new("UICorner", SpeedButton).CornerRadius = UDim.new(0, 6)
-
-local function ApplySpeed()
-    local speed = tonumber(SpeedBox.Text)
-    if speed and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
-        LocalPlayer.Character.Humanoid.WalkSpeed = speed
-    end
-end
-
-SpeedButton.MouseButton1Click:Connect(ApplySpeed)
-UserInputService.InputBegan:Connect(function(input, gpe)
-    if gpe then return end
-    if input.UserInputType == Enum.UserInputType.Keyboard then
-        if matchesHotkey(input, SpeedHotkeyBox.Text) then
-            ApplySpeed()
-        end
-    end
-end)
-
--- Never Ragdoll Toggle
-local RagdollToggle = Instance.new("TextButton", Frame)
-RagdollToggle.Position = UDim2.new(0, 10, 0, 530)
-RagdollToggle.Size = UDim2.new(1, -20, 0, 30)
-RagdollToggle.Text = "Never Ragdoll: OFF"
-RagdollToggle.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-RagdollToggle.TextColor3 = Color3.fromRGB(255, 255, 255)
-RagdollToggle.Font = Enum.Font.SourceSans
-RagdollToggle.TextSize = 18
-Instance.new("UICorner", RagdollToggle).CornerRadius = UDim.new(0, 6)
-
-local NeverRagdoll = false
-
-local function ForceStand(char)
-    local humanoid = char:FindFirstChild("Humanoid")
-    if humanoid then
-        if humanoid.PlatformStand then
-            humanoid.PlatformStand = false
-        end
-        humanoid:ChangeState(Enum.HumanoidStateType.GettingUp)
-        humanoid.Sit = false
-    end
-end
-
-local function SetupForceStand()
-    local char = LocalPlayer.Character
-    if char and char:FindFirstChild("Humanoid") then
-        -- Check every frame
-        RunService.Stepped:Connect(function()
-            if NeverRagdoll then
-                ForceStand(char)
-            end
-        end)
-    end
-end
-
-RagdollToggle.MouseButton1Click:Connect(function()
-    NeverRagdoll = not NeverRagdoll
-    RagdollToggle.Text = "Never Ragdoll: " .. (NeverRagdoll and "ON" or "OFF")
-    if NeverRagdoll then
-        SetupForceStand()
-    end
-end)
-
--- Re-apply when you respawn
-LocalPlayer.CharacterAdded:Connect(function()
-    if NeverRagdoll then
-        task.wait(0.5)
-        SetupForceStand()
-    end
+	if InputBeganConn then InputBeganConn:Disconnect() end
+	if InputEndedConn then InputEndedConn:Disconnect() end
 end)
