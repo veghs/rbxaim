@@ -138,7 +138,7 @@ local function CreateESP(plr)
 			local highlight = Instance.new("Highlight", ESPFolder)
 			highlight.Name = plr.Name
 			highlight.Adornee = plr.Character
-			highlight.FillColor = getTeamColor(plr)
+			highlight.FillColor = plr.TeamColor.Color
 			highlight.FillTransparency = 0.5
 			highlight.OutlineTransparency = 0
 		end
