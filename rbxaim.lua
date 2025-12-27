@@ -211,9 +211,14 @@ local function GetClosestPlayer()
 	return closest
 end
 
-local function matchesHotkey(input, hotkeyText)
-	local key = physicalToLogicalKey(input.KeyCode.Name)
-	return key:lower() == (hotkeyText or ""):lower()
+local function matchesHotkey(input, text)
+    if input.UserInputType.Name:lower() == (text or ""):lower() then
+        return true
+    end
+    if input.KeyCode ~= Enum.KeyCode.Unknown then
+        return physicalToLogicalKey(input.KeyCode.Name):lower() == (text or ""):lower()
+    end
+    return false
 end
 
 -- Events
