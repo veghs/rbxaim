@@ -122,13 +122,6 @@ local function physicalToLogicalKey(keyName)
 end
 
 -- Functions
-local function getTeamColor(plr)
-	if plr.Team and plr.Team.TeamColor then
-		return plr.Team.TeamColor.Color
-	end
-	return Color3.new(1,1,1)
-end
-
 local function CreateESP(plr)
 	if plr ~= LocalPlayer then
 		if ESPFolder:FindFirstChild(plr.Name) then
@@ -138,8 +131,7 @@ local function CreateESP(plr)
 			local highlight = Instance.new("Highlight", ESPFolder)
 			highlight.Name = plr.Name
 			highlight.Adornee = plr.Character
-			highlight.FillColor = plr.TeamColor.Color
-			highlight.OutlineColor = plr.TeamColor.Color
+			highlight.FillColor = ESPColor
 			highlight.FillTransparency = 0.5
 			highlight.OutlineTransparency = 0
 		end
