@@ -72,22 +72,14 @@ HotkeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 HotkeyBox.Font = Enum.Font.SourceSans
 HotkeyBox.TextSize = 16
 
-local AimHotkey = nil
-local WaitingForAimKey = false
-
-local AimHotkeyButton = Instance.new("TextButton", Frame)
-AimHotkeyButton.Position = UDim2.new(0, 10, 0, 160)
-AimHotkeyButton.Size = UDim2.new(1, -20, 0, 30)
-AimHotkeyButton.Text = "Set Aimhack Hotkey"
-AimHotkeyButton.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-AimHotkeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-AimHotkeyButton.Font = Enum.Font.SourceSans
-AimHotkeyButton.TextSize = 18
-
-AimHotkeyButton.MouseButton1Click:Connect(function()
-	WaitingForAimKey = true
-	AimHotkeyButton.Text = "Press key or mouse..."
-end)
+local AimHotkeyBox = Instance.new("TextBox", Frame)
+AimHotkeyBox.PlaceholderText = "Hotkey to Toggle Aimhack"
+AimHotkeyBox.Position = UDim2.new(0, 10, 0, 160)
+AimHotkeyBox.Size = UDim2.new(1, -20, 0, 30)
+AimHotkeyBox.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+AimHotkeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+AimHotkeyBox.Font = Enum.Font.SourceSans
+AimHotkeyBox.TextSize = 16
 
 local TeleportToggle = Instance.new("TextButton", Frame)
 TeleportToggle.Position = UDim2.new(0, 10, 0, 200)
@@ -219,14 +211,9 @@ local function GetClosestPlayer()
 	return closest
 end
 
-local function matchesHotkey(input, text)
-    if input.UserInputType.Name:lower() == (text or ""):lower() then
-        return true
-    end
-    if input.KeyCode ~= Enum.KeyCode.Unknown then
-        return physicalToLogicalKey(input.KeyCode.Name):lower() == (text or ""):lower()
-    end
-    return false
+local function matchesHotkey(input, hotkeyText)
+	local key = physicalToLogicalKey(input.KeyCode.Name)
+	return key:lower() == (hotkeyText or ""):lower()
 end
 
 -- Events
@@ -270,37 +257,18 @@ end
 
 UserInputService.InputBegan:Connect(function(input, gpe)
 	if gpe then return end
-
-if WaitingForAimKey then
-	AimHotkey = {
-		KeyCode = input.KeyCode,
-		UserInputType = input.UserInputType
-	}
-	WaitingForAimKey = false
-
-	if input.UserInputType.Name:find("MouseButton") then
-		AimHotkeyButton.Text = input.UserInputType.Name
-	else
-		AimHotkeyButton.Text = input.KeyCode.Name
-	end
-	return
-end
-
-	if AimHotkey then
-		if input.KeyCode == AimHotkey.KeyCode
-		or input.UserInputType == AimHotkey.UserInputType then
-			AimbotEnabled = not AimbotEnabled
-			if not AimbotEnabled then CurrentTarget = nil end
-		end
-	end
-
 	if input.UserInputType == Enum.UserInputType.MouseButton2 then
 		RightMouseDown = true
 	end
-
 	if input.UserInputType == Enum.UserInputType.Keyboard then
 		if matchesHotkey(input, HotkeyBox.Text) then
 			Frame.Visible = not Frame.Visible
+		end
+		if matchesHotkey(input, AimHotkeyBox.Text) then
+			AimbotEnabled = not AimbotEnabled
+			if not AimbotEnabled then
+				CurrentTarget = nil
+			end
 		end
 	end
 end)
