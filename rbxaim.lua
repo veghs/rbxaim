@@ -139,6 +139,7 @@ local function CreateESP(plr)
 			highlight.Name = plr.Name
 			highlight.Adornee = plr.Character
 			highlight.FillColor = plr.TeamColor.Color
+			highlight.OutlineColor = plr.TeamColor.Color
 			highlight.FillTransparency = 0.5
 			highlight.OutlineTransparency = 0
 		end
