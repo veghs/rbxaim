@@ -271,18 +271,20 @@ end
 UserInputService.InputBegan:Connect(function(input, gpe)
 	if gpe then return end
 
-	if WaitingForAimKey then
-		AimHotkey = {
-			KeyCode = input.KeyCode,
-			UserInputType = input.UserInputType
-		}
-		WaitingForAimKey = false
-		AimHotkeyButton.Text =
-			input.KeyCode ~= Enum.KeyCode.Unknown
-			and input.KeyCode.Name
-			or input.UserInputType.Name
-		return
+if WaitingForAimKey then
+	AimHotkey = {
+		KeyCode = input.KeyCode,
+		UserInputType = input.UserInputType
+	}
+	WaitingForAimKey = false
+
+	if input.UserInputType.Name:find("MouseButton") then
+		AimHotkeyButton.Text = input.UserInputType.Name
+	else
+		AimHotkeyButton.Text = input.KeyCode.Name
 	end
+	return
+end
 
 	if AimHotkey then
 		if input.KeyCode == AimHotkey.KeyCode
